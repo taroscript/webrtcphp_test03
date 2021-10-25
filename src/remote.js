@@ -15,7 +15,7 @@ export const RemoteHelper = {
   },
 
   prepare : (callback) => {
-
+    console.log("test");
     const endpoint = RemoteHelper.endpoints.getVideo;
     
     console.log("prepare");
@@ -28,4 +28,5 @@ export const RemoteHelper = {
       callback(data);
     });
   }
+
 };
