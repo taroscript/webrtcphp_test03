@@ -27,5 +27,5 @@ export const RemoteHelper = {
     }).done((data)=>{
       callback(data);
     });
-  } 
+  }
 };
