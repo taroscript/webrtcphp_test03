@@ -1,33 +1,22 @@
+
 import { 
-  g_elementVideoLocal,
-  GlobalRTCParms,
-  g_elementTextareaOfferSideOfferSDP,
-  RemoteHelper
-} from "./client";
+    RemoteHelper
+  } from "../remote.js";
 
-// 「Create OfferSDP.」ボタンを押すと呼ばれる関数
-export const start_createOfferSDP = () => {
-    //console.log( "UI Event : 'Create Offer SDP.' button clicked." );
-    console.log( "Create Offer SDP" );
-    //let g_rtcPeerConnection = null;
-    if( GlobalRTCParms.g_rtcPeerConnection )
-    {   // 既にコネクションオブジェクトあり
-        alert( "Connection object already exists." );
-        return;
-    }
-    
-    
-    // RTCPeerConnectionオブジェクトの作成
-    console.log( "Call : createPeerConnection()" );
-    let rtcPeerConnection = createPeerConnection( g_elementVideoLocal.srcObject );
-    //g_rtcPeerConnection = rtcPeerConnection;    // グローバル変数に設定
-    GlobalRTCParms.g_rtcPeerConnection = rtcPeerConnection;
+import {
+    setStreamToElement
+} from "../video.js"
 
-    // OfferSDPの作成
-    createOfferSDP( rtcPeerConnection );
-    
-}
-
+import {
+    g_elementVideoLocal,
+    g_elementAudioLocal,
+    g_elementVideoRemote,
+    g_elementAudioRemote,
+    g_elementTextareaOfferSideOfferSDP,
+    g_elementTextareaAnswerSideAnswerSDP,
+    retry,
+    GlobalRTCParms
+} from "../client.js"
 
 // RTCPeerConnectionオブジェクトの作成
 export const createPeerConnection = ( stream ) => {
@@ -59,27 +48,6 @@ export const createPeerConnection = ( stream ) => {
     return rtcPeerConnection;
 }
 
-// OfferSDPの作成
-const createOfferSDP = ( rtcPeerConnection ) =>{
-    // OfferSDPの作成
-    console.log( "Call : rtcPeerConnection.createOffer()" );
-    rtcPeerConnection.createOffer()
-        .then( ( sessionDescription ) =>
-        {
-            // 作成されたOfferSDPををLocalDescriptionに設定
-            console.log( "Call : rtcPeerConnection.setLocalDescription()" );
-            return rtcPeerConnection.setLocalDescription( sessionDescription );
-        } )
-        .then( () =>
-        {
-            // Vanilla ICEの場合は、まだSDPを相手に送らない
-            // Trickle ICEの場合は、初期SDPを相手に送る
-        } )
-        .catch( ( error ) =>
-        {
-            console.error( "Error : ", error );
-        } );
-}
 
 // RTCPeerConnectionオブジェクトのイベントハンドラの構築
 export const setupRTCPeerConnectionEventHandler = ( rtcPeerConnection ) => {
@@ -135,18 +103,42 @@ export const setupRTCPeerConnectionEventHandler = ( rtcPeerConnection ) => {
         console.log( "- ICE gathering state : ", rtcPeerConnection.iceGatheringState );
 
         if( "complete" === rtcPeerConnection.iceGatheringState )
-        {
-            // Vanilla ICEの場合は、ICE candidateを含んだOfferSDP/AnswerSDPを相手に送る
-            // Trickle ICEの場合は、何もしない
+        {   
+            if("offer" == rtcPeerConnection.localDescription.type)
+            {
+                // Vanilla ICEの場合は、ICE candidateを含んだOfferSDP/AnswerSDPを相手に送る
+                // Trickle ICEの場合は、何もしない
 
-            // Offer側のOfferSDP用のテキストエリアに貼付
-            console.log( "- Set OfferSDP in textarea" );
+                // Offer側のOfferSDP用のテキストエリアに貼付
+                // amend 以下不要
+                console.log( "- Set OfferSDP in textarea" );
 
-            g_elementTextareaOfferSideOfferSDP.value = rtcPeerConnection.localDescription.sdp;
-            g_elementTextareaOfferSideOfferSDP.focus();
-            g_elementTextareaOfferSideOfferSDP.select();
-            RemoteHelper.emit("signaling",{ type:"offer", data:rtcPeerConnection.localDescription } )
+                g_elementTextareaOfferSideOfferSDP.value = rtcPeerConnection.localDescription.sdp;
+                g_elementTextareaOfferSideOfferSDP.focus();
+                g_elementTextareaOfferSideOfferSDP.select();
+                
+                RemoteHelper.emit("signaling",{ type:"offer", data:rtcPeerConnection.localDescription } );
+                // ここにstart入れている理由は何だっけ??? offer側がanswer側sdpをセットする処理の開始のため
+                RemoteHelper.start();
+            }
+            else if( "answer" === rtcPeerConnection.localDescription.type )
+            {
+                // Answer側のAnswerSDP用のテキストエリアに貼付
+                console.log( "- Set AnswerSDP in textarea" );
+                g_elementTextareaAnswerSideAnswerSDP.value = rtcPeerConnection.localDescription.sdp;
+                g_elementTextareaAnswerSideAnswerSDP.focus();
+                g_elementTextareaAnswerSideAnswerSDP.select();
+                
+                // amend 上のコードと重複部分消せない?
+                RemoteHelper.emit("signaling",{ type:"answer", data:rtcPeerConnection.localDescription } );
+                
+            }
+            else
+            {
+                console.error( "Unexpected : Unknown localDescription.type. type = ", rtcPeerConnection.localDescription.type );
+            }
         }
+        
     };
 
     // ICE connection state change イベントが発生したときのイベントハンドラ
@@ -160,6 +152,7 @@ export const setupRTCPeerConnectionEventHandler = ( rtcPeerConnection ) => {
     {
         console.log( "Event : ICE connection state change" );
         console.log( "- ICE connection state : ", rtcPeerConnection.iceConnectionState );
+        console.log("test:",rtcPeerConnection.iceConnectionState);
         // "disconnected" : コンポーネントがまだ接続されていることを確認するために、RTCPeerConnectionオブジェクトの少なくとも
         //                  1つのコンポーネントに対して失敗したことを確認します。これは、"failed "よりも厳しいテストではなく、
         //                  断続的に発生し、信頼性の低いネットワークや一時的な切断中に自然に解決することがあります。問題が
@@ -168,6 +161,20 @@ export const setupRTCPeerConnectionEventHandler = ( rtcPeerConnection ) => {
         //                  互換性のあるものを見つけることができなかった。しかし、ICEエージェントがいくつかの
         //                  コンポーネントに対して互換性のある接続を見つけた可能性がある。
         // see : https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState
+        if(rtcPeerConnection.iceConnectionState == "disconnected"){
+            console.log("retry");
+            //console.log("RemoteHelper.isHost",RemoteHelper.isHost);
+            // if(RemoteHelper.type == "offer"){
+            //     // host切断時は、offerから再作成するため１からリトライ
+            //     retry();
+            // }
+            // else if(RemoteHelper.type == "answer" ){
+            //     //guest切断時は、offer再設定するための、初期化処理
+            //     GlobalRTCParms.g_rtcPeerConnection = null;
+            // }
+            retry();
+            
+        }
     };
 
     // Signaling state change イベントが発生したときのイベントハンドラ
@@ -204,5 +211,22 @@ export const setupRTCPeerConnectionEventHandler = ( rtcPeerConnection ) => {
         console.log( "Event : Track" );
         console.log( "- stream", event.streams[0] );
         console.log( "- track", event.track );
+        // HTML要素へのリモートメディアストリームの設定
+        let stream = event.streams[0];
+        let track = event.track;
+        if( "video" === track.kind )
+        {
+            console.log( "Call : setStreamToElement( Video_Remote, stream )" );
+            setStreamToElement( g_elementVideoRemote, stream );
+        }
+        else if( "audio" === track.kind )
+        {
+            console.log( "Call : setStreamToElement( Audio_Remote, stream )" );
+            setStreamToElement( g_elementAudioRemote, stream );
+        }
+        else
+        {
+            console.error( "Unexpected : Unknown track kind : ", track.kind );
+        }
     };
 }

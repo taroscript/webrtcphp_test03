@@ -1,11 +1,18 @@
 import { 
   g_elementCheckboxCamera,
   g_elementCheckboxMicrophone,
-  g_elementVideoLocal
-} from "./client";
+  g_elementVideoLocal,
+  g_elementVideoRemote
+} from "./client.js";
+
+export const mediaManeger = {
+
+    bCamera_new : false
+
+}
 
 // カメラとマイクのOn/Offのチェックボックスを押すと呼ばれる関数
-export const onclickCheckbox_CameraMicrophone = () => {
+export const onclickCheckbox_CameraMicrophone = (callback) => {
     console.log( "UI Event : Camera/Microphone checkbox clicked." );
 
     // これまでの状態
@@ -29,14 +36,28 @@ export const onclickCheckbox_CameraMicrophone = () => {
     }
 
     // 今後の状態
+    
+    // video startを押したら開始
+    // video startを押していなくても、チェックフラグ＝trueで開始
+    // チェックフラグ=falseで停止
     let bCamera_new = false;
-    if( g_elementCheckboxCamera.checked )
+    bCamera_new = mediaManeger.bCamera_new;
+
+    if( g_elementCheckboxCamera.checked == false )
     {
+        bCamera_new = false;
+    }
+    else{
         bCamera_new = true;
     }
+
     let bMicrophone_new = false;
-    if( g_elementCheckboxMicrophone.checked )
+    bMicrophone_new = mediaManeger.bMicrophone_new;
+    if( g_elementCheckboxMicrophone.checked == false )
     {
+        bMicrophone_new = false;
+    }
+    else{
         bMicrophone_new = true;
     }
 
@@ -46,9 +67,10 @@ export const onclickCheckbox_CameraMicrophone = () => {
 
     if( bCamera_old === bCamera_new && bMicrophone_old === bMicrophone_new )
     {   // チェックボックスの状態の変化なし
+        if(callback)callback();
         return;
     }
-
+    console.log("trackCamera_old",trackCamera_old);
     // 古いメディアストリームのトラックの停止（トラックの停止をせず、HTML要素のstreamの解除だけではカメラは停止しない（カメラ動作LEDは点いたまま））
     if( trackCamera_old )
     {
@@ -81,6 +103,8 @@ export const onclickCheckbox_CameraMicrophone = () => {
             // HTML要素へのメディアストリームの設定
             console.log( "Call : setStreamToElement( Video_Local, stream )" );
             setStreamToElement( g_elementVideoLocal, stream );
+            console.log("setStreamToElement complete")
+            if(callback)callback();
         } )
         .catch( ( error ) =>
         {
@@ -98,8 +122,9 @@ export const onclickCheckbox_CameraMicrophone = () => {
 // メディアストリームは、ローカルメディアストリームもしくはリモートメディアストリーム、もしくはnull。
 // メディアストリームには、Videoトラック、Audioトラックの両方もしくは片方のみが含まれる。
 // メディアストリームに含まれるトラックの種別、設定するHTML要素種別は、呼び出し側で対処する。
-function setStreamToElement( elementMedia, stream )
-{
+export function setStreamToElement( elementMedia, stream )
+{   
+    console.log("setStreamToElement")
     // メディアストリームを、メディア用のHTML要素のsrcObjに設定する。
     // - 古くは、elementVideo.src = URL.createObjectURL( stream ); のように書いていたが、URL.createObjectURL()は、廃止された。
     //   現在は、elementVideo.srcObject = stream; のように書く。

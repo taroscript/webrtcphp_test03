@@ -29,6 +29,8 @@ const config = {
     // Add your plugins here
     // Learn more about plugins from https://webpack.js.org/configuration/plugins/
   ],
+  // 20211025 to solve source map error.
+  devtool: 'hidden-source-map',
   module: {
     rules: [
       {
@@ -52,6 +54,7 @@ const config = {
       // Learn more about loaders from https://webpack.js.org/loaders/
     ],
   },
+  
 };
 
 module.exports = () => {

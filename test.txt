@@ -1,0 +1,45 @@
+
+const abc = () =>{
+  
+  console.log(2);
+  var res = 1;
+
+  const abc2 = (res) => {
+    console.log(res);
+  }
+}
+
+const sample = (resolve) =>{
+  //const url = 'https://httpbin.org/get'
+
+  // APIへの非同期処理
+  // $.get(url)
+  //     .then(() => {
+  //         console.log("これは非同期処理が成功した時のログです。")
+  //         return resolve
+  //     }).catch(() => {
+  //         console.error("これは非同期処理が失敗した時のログです。")
+  //         return reject
+  //     })
+  
+
+  
+  setTimeout(()=>{
+    console.log("setTimeout")
+    return resolve;
+  }, 2000)
+}
+
+const myFunc = () => new Promise( resolve => {
+    return sample(resolve);      
+});
+
+const test = async() => {
+  console.log("test start");
+  try{
+    await myFunc();
+    console.log("完了");
+  } catch(err){
+    console.log("完了");
+  }
+}
