@@ -594,10 +594,10 @@ var setupRTCPeerConnectionEventHandler = function setupRTCPeerConnectionEventHan
         // Trickle ICEの場合は、何もしない
         // Offer側のOfferSDP用のテキストエリアに貼付
         // amend 以下不要
-        console.log("- Set OfferSDP in textarea");
-        _client_js__WEBPACK_IMPORTED_MODULE_2__.g_elementTextareaOfferSideOfferSDP.value = rtcPeerConnection.localDescription.sdp;
-        _client_js__WEBPACK_IMPORTED_MODULE_2__.g_elementTextareaOfferSideOfferSDP.focus();
-        _client_js__WEBPACK_IMPORTED_MODULE_2__.g_elementTextareaOfferSideOfferSDP.select();
+        console.log("- Set OfferSDP in textarea"); // g_elementTextareaOfferSideOfferSDP.value = rtcPeerConnection.localDescription.sdp;
+        // g_elementTextareaOfferSideOfferSDP.focus();
+        // g_elementTextareaOfferSideOfferSDP.select();
+
         _remote_js__WEBPACK_IMPORTED_MODULE_0__.RemoteHelper.emit("signaling", {
           type: "offer",
           data: rtcPeerConnection.localDescription
@@ -606,10 +606,10 @@ var setupRTCPeerConnectionEventHandler = function setupRTCPeerConnectionEventHan
         _remote_js__WEBPACK_IMPORTED_MODULE_0__.RemoteHelper.start();
       } else if ("answer" === rtcPeerConnection.localDescription.type) {
         // Answer側のAnswerSDP用のテキストエリアに貼付
-        console.log("- Set AnswerSDP in textarea");
-        _client_js__WEBPACK_IMPORTED_MODULE_2__.g_elementTextareaAnswerSideAnswerSDP.value = rtcPeerConnection.localDescription.sdp;
-        _client_js__WEBPACK_IMPORTED_MODULE_2__.g_elementTextareaAnswerSideAnswerSDP.focus();
-        _client_js__WEBPACK_IMPORTED_MODULE_2__.g_elementTextareaAnswerSideAnswerSDP.select(); // amend 上のコードと重複部分消せない?
+        console.log("- Set AnswerSDP in textarea"); // g_elementTextareaAnswerSideAnswerSDP.value = rtcPeerConnection.localDescription.sdp;
+        // g_elementTextareaAnswerSideAnswerSDP.focus();
+        // g_elementTextareaAnswerSideAnswerSDP.select();
+        // amend 上のコードと重複部分消せない?
 
         _remote_js__WEBPACK_IMPORTED_MODULE_0__.RemoteHelper.emit("signaling", {
           type: "answer",

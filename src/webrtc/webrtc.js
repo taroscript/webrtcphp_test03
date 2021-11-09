@@ -113,9 +113,9 @@ export const setupRTCPeerConnectionEventHandler = ( rtcPeerConnection ) => {
                 // amend 以下不要
                 console.log( "- Set OfferSDP in textarea" );
 
-                g_elementTextareaOfferSideOfferSDP.value = rtcPeerConnection.localDescription.sdp;
-                g_elementTextareaOfferSideOfferSDP.focus();
-                g_elementTextareaOfferSideOfferSDP.select();
+                // g_elementTextareaOfferSideOfferSDP.value = rtcPeerConnection.localDescription.sdp;
+                // g_elementTextareaOfferSideOfferSDP.focus();
+                // g_elementTextareaOfferSideOfferSDP.select();
                 
                 RemoteHelper.emit("signaling",{ type:"offer", data:rtcPeerConnection.localDescription } );
                 // ここにstart入れている理由は何だっけ??? offer側がanswer側sdpをセットする処理の開始のため
@@ -125,9 +125,9 @@ export const setupRTCPeerConnectionEventHandler = ( rtcPeerConnection ) => {
             {
                 // Answer側のAnswerSDP用のテキストエリアに貼付
                 console.log( "- Set AnswerSDP in textarea" );
-                g_elementTextareaAnswerSideAnswerSDP.value = rtcPeerConnection.localDescription.sdp;
-                g_elementTextareaAnswerSideAnswerSDP.focus();
-                g_elementTextareaAnswerSideAnswerSDP.select();
+                // g_elementTextareaAnswerSideAnswerSDP.value = rtcPeerConnection.localDescription.sdp;
+                // g_elementTextareaAnswerSideAnswerSDP.focus();
+                // g_elementTextareaAnswerSideAnswerSDP.select();
                 
                 // amend 上のコードと重複部分消せない?
                 RemoteHelper.emit("signaling",{ type:"answer", data:rtcPeerConnection.localDescription } );
