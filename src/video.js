@@ -61,17 +61,17 @@ export const onclickCheckbox_CameraMicrophone = (callback) => {
         bMicrophone_new = true;
     }
 
-    // 状態変化
+    
     console.log( "Camera :  %s => %s", bCamera_old, bCamera_new );
     console.log( "Microphoneo : %s = %s", bMicrophone_old, bMicrophone_new );
 
     if( bCamera_old === bCamera_new && bMicrophone_old === bMicrophone_new )
-    {   // チェックボックスの状態の変化なし
+    {   
         if(callback)callback();
         return;
     }
     console.log("trackCamera_old",trackCamera_old);
-    // 古いメディアストリームのトラックの停止（トラックの停止をせず、HTML要素のstreamの解除だけではカメラは停止しない（カメラ動作LEDは点いたまま））
+ 
     if( trackCamera_old )
     {
         console.log( "Call : trackCamera_old.stop()" );
@@ -87,15 +87,10 @@ export const onclickCheckbox_CameraMicrophone = (callback) => {
     setStreamToElement( g_elementVideoLocal, null );
 
     if( !bCamera_new && !bMicrophone_new )
-    {   // （チェックボックスの状態の変化があり、かつ、）カメラとマイクを両方Offの場合
+    {   
         return;
     }
 
-    // （チェックボックスの状態の変化があり、かつ、）カメラとマイクのどちらかもしくはどちらもOnの場合
-
-    // 自分のメディアストリームを取得する。
-    // - 古くは、navigator.getUserMedia() を使用していたが、廃止された。
-    //   現在は、navigator.mediaDevices.getUserMedia() が新たに用意され、これを使用する。
     console.log( "Call : navigator.mediaDevices.getUserMedia( video=%s, audio=%s )", bCamera_new, bMicrophone_new );
     navigator.mediaDevices.getUserMedia( { video: bCamera_new, audio: bMicrophone_new } )
         .then( ( stream ) =>
@@ -117,17 +112,9 @@ export const onclickCheckbox_CameraMicrophone = (callback) => {
         } );
 }
 
-// HTML要素へのメディアストリームの設定（もしくは解除。および開始）
-// HTML要素は、「ローカルもしくはリモート」の「videoもしくはaudio」。
-// メディアストリームは、ローカルメディアストリームもしくはリモートメディアストリーム、もしくはnull。
-// メディアストリームには、Videoトラック、Audioトラックの両方もしくは片方のみが含まれる。
-// メディアストリームに含まれるトラックの種別、設定するHTML要素種別は、呼び出し側で対処する。
 export function setStreamToElement( elementMedia, stream )
 {   
     console.log("setStreamToElement")
-    // メディアストリームを、メディア用のHTML要素のsrcObjに設定する。
-    // - 古くは、elementVideo.src = URL.createObjectURL( stream ); のように書いていたが、URL.createObjectURL()は、廃止された。
-    //   現在は、elementVideo.srcObject = stream; のように書く。
     elementMedia.srcObject = stream;
 
     if( !stream )
@@ -137,12 +124,12 @@ export function setStreamToElement( elementMedia, stream )
 
     // 音量
     if( "VIDEO" === elementMedia.tagName )
-    {   // VIDEO：ボリュームゼロ、ミュート
+    {   
         elementMedia.volume = 0.0;
         elementMedia.muted = true;
     }
     else if( "AUDIO" === elementMedia.tagName )
-    {   // AUDIO：ボリュームあり、ミュートでない
+    {   
         elementMedia.volume = 1.0;
         elementMedia.muted = false;
     }

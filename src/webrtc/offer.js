@@ -45,8 +45,7 @@ const createOfferSDP = ( rtcPeerConnection ) =>{
       } )
       .then( () =>
       {
-          // Vanilla ICEの場合は、まだSDPを相手に送らない
-          // Trickle ICEの場合は、初期SDPを相手に送る
+          
       } )
       .catch( ( error ) =>
       {

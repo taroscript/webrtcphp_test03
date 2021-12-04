@@ -22,7 +22,11 @@ import {
 export const createPeerConnection = ( stream ) => {
     console.log("createPeerConnection");
     // RTCPeerConnectionオブジェクトの生成
-    let config = { "iceServers": [] };
+    let config = { "iceServers": [
+        { "urls": "stun:stun.l.google.com:19302" },
+        { "urls": "stun:stun1.l.google.com:19302" },
+        { "urls": "stun:stun2.l.google.com:19302" },
+    ] };
     let rtcPeerConnection = new RTCPeerConnection( config );
 
     // RTCPeerConnectionオブジェクトのイベントハンドラの構築
@@ -49,26 +53,16 @@ export const createPeerConnection = ( stream ) => {
 }
 
 
-// RTCPeerConnectionオブジェクトのイベントハンドラの構築
+
 export const setupRTCPeerConnectionEventHandler = ( rtcPeerConnection ) => {
-    // Negotiation needed イベントが発生したときのイベントハンドラ
-    // - このイベントは、セッションネゴシエーションを必要とする変更が発生したときに発生する。
-    //   一部のセッション変更はアンサーとしてネゴシエートできないため、このネゴシエーションはオファー側として実行されなければならない。
-    //   最も一般的には、negotiationneededイベントは、RTCPeerConnectionに送信トラックが追加された後に発生する。
-    //   ネゴシエーションがすでに進行しているときに、ネゴシエーションを必要とする方法でセッションが変更された場合、
-    //   ネゴシエーションが完了するまで、negotiationneededイベントは発生せず、ネゴシエーションがまだ必要な場合にのみ発生する。
-    //   see : https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/onnegotiationneeded
+
     rtcPeerConnection.onnegotiationneeded = () =>
     {
         console.log( "Event : Negotiation needed" );
     };
 
-    // ICE candidate イベントが発生したときのイベントハンドラ
-    // - これは、ローカルのICEエージェントがシグナリング・サーバを介して
-    //   他のピアにメッセージを配信する必要があるときはいつでも発生する。
-    //   これにより、ブラウザ自身がシグナリングに使用されている技術についての詳細を知る必要がなく、
-    //   ICE エージェントがリモートピアとのネゴシエーションを実行できるようになる。
-    //   see : https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/onicecandidate
+    // ICE candidate
+    //  https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/onicecandidate
     rtcPeerConnection.onicecandidate = ( event ) =>
     {
         console.log( "Event : ICE candidate" );
@@ -85,18 +79,15 @@ export const setupRTCPeerConnectionEventHandler = ( rtcPeerConnection ) => {
         }
     };
 
-    // ICE candidate error イベントが発生したときのイベントハンドラ
-    // - このイベントは、ICE候補の収集処理中にエラーが発生した場合に発生する。
-    //   see : https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/onicecandidateerror
+    // ICE candidate error
+    // https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/onicecandidateerror
     rtcPeerConnection.onicecandidateerror = ( event ) =>
     {
         console.error( "Event : ICE candidate error. error code : ", event.errorCode );
     };
 
     // ICE gathering state change イベントが発生したときのイベントハンドラ
-    // - このイベントは、ICE gathering stateが変化したときに発生する。
-    //   言い換えれば、ICEエージェントがアクティブに候補者を収集しているかどうかが変化したときに発生する。
-    //   see : https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/onicegatheringstatechange
+    // https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/onicegatheringstatechange
     rtcPeerConnection.onicegatheringstatechange = () =>
     {
         console.log( "Event : ICE gathering state change" );
@@ -142,25 +133,13 @@ export const setupRTCPeerConnectionEventHandler = ( rtcPeerConnection ) => {
     };
 
     // ICE connection state change イベントが発生したときのイベントハンドラ
-    // - このイベントは、ネゴシエーションプロセス中にICE connection stateが変化するたびに発生する。 
-    // - 接続が成功すると、通常、状態は「new」から始まり、「checking」を経て、「connected」、最後に「completed」と遷移します。 
-    //   ただし、特定の状況下では、「connected」がスキップされ、「checking」から「completed」に直接移行する場合があります。
-    //   これは、最後にチェックされた候補のみが成功した場合に発生する可能性があり、成功したネゴシエーションが完了する前に、
-    //   収集信号と候補終了信号の両方が発生します。
-    //   see : https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceconnectionstatechange_event
+    //   https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceconnectionstatechange_event
     rtcPeerConnection.oniceconnectionstatechange = () =>
     {
         console.log( "Event : ICE connection state change" );
         console.log( "- ICE connection state : ", rtcPeerConnection.iceConnectionState );
         console.log("test:",rtcPeerConnection.iceConnectionState);
-        // "disconnected" : コンポーネントがまだ接続されていることを確認するために、RTCPeerConnectionオブジェクトの少なくとも
-        //                  1つのコンポーネントに対して失敗したことを確認します。これは、"failed "よりも厳しいテストではなく、
-        //                  断続的に発生し、信頼性の低いネットワークや一時的な切断中に自然に解決することがあります。問題が
-        //                  解決すると、接続は "接続済み "の状態に戻ることがあります。
-        // "failed"       : ICE candidateは、すべての候補のペアを互いにチェックしたが、接続のすべてのコンポーネントに
-        //                  互換性のあるものを見つけることができなかった。しかし、ICEエージェントがいくつかの
-        //                  コンポーネントに対して互換性のある接続を見つけた可能性がある。
-        // see : https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState
+        // https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState
         if(rtcPeerConnection.iceConnectionState == "disconnected"){
             console.log("retry");
             //console.log("RemoteHelper.isHost",RemoteHelper.isHost);
@@ -177,35 +156,25 @@ export const setupRTCPeerConnectionEventHandler = ( rtcPeerConnection ) => {
         }
     };
 
-    // Signaling state change イベントが発生したときのイベントハンドラ
-    // - このイベントは、ピア接続のsignalStateが変化したときに送信される。
-    //   これは、setLocalDescription（）またはsetRemoteDescription（）の呼び出しが原因で発生する可能性がある。
-    //   see : https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/onsignalingstatechange
+    // Signaling state change
+    //https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/onsignalingstatechange
     rtcPeerConnection.onsignalingstatechange = () =>
     {
         console.log( "Event : Signaling state change" );
         console.log( "- Signaling state : ", rtcPeerConnection.signalingState );
     };
 
-    // Connection state change イベントが発生したときのイベントハンドラ
-    // - このイベントは、ピア接続の状態が変化したときに送信される。
-    //   see : https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/onconnectionstatechange
+    // Connection state change
+    // https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/onconnectionstatechange
     rtcPeerConnection.onconnectionstatechange = () =>
     {
         console.log( "Event : Connection state change" );
         console.log( "- Connection state : ", rtcPeerConnection.connectionState );
-        // "disconnected" : 接続のためのICEトランスポートの少なくとも1つが「disconnected」状態であり、
-        //                  他のトランスポートのどれも「failed」、「connecting」、「checking」の状態ではない。
-        // "failed"       : 接続の1つ以上のICEトランスポートが「失敗」状態になっている。
-        // see : https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState
+        // https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState
     };
 
-    // Track イベントが発生したときのイベントハンドラ
-    // - このイベントは、新しい着信MediaStreamTrackが作成され、
-    //   コネクション上のレシーバーセットに追加されたRTCRtpReceiverオブジェクトに関連付けられたときに送信される。
-    //   see : https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/ontrack
-    // - 古くは、rtcPeerConnection.onaddstream に設定していたが、廃止された。
-    //   現在は、rtcPeerConnection.ontrack に設定する。
+    // Track
+    // https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/ontrack
     rtcPeerConnection.ontrack = ( event ) =>
     {
         console.log( "Event : Track" );

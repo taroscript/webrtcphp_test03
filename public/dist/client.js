@@ -523,7 +523,13 @@ var createPeerConnection = function createPeerConnection(stream) {
   console.log("createPeerConnection"); // RTCPeerConnectionオブジェクトの生成
 
   var config = {
-    "iceServers": []
+    "iceServers": [{
+      "urls": "stun:stun.l.google.com:19302"
+    }, {
+      "urls": "stun:stun1.l.google.com:19302"
+    }, {
+      "urls": "stun:stun2.l.google.com:19302"
+    }]
   };
   var rtcPeerConnection = new RTCPeerConnection(config); // RTCPeerConnectionオブジェクトのイベントハンドラの構築
 

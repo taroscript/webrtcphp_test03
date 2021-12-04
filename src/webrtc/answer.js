@@ -79,8 +79,6 @@ function setOfferSDP_and_createAnswerSDP( rtcPeerConnection, sessionDescription 
       } )
       .then( () =>
       {
-          // Vanilla ICEの場合は、まだSDPを相手に送らない
-          // Trickle ICEの場合は、初期SDPを相手に送る
           RemoteHelper.stop();
       } )
       .catch( ( error ) =>
